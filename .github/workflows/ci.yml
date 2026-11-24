@@ -1,0 +1,27 @@
+name: Swift CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Show toolchain
+        run: swift --version
+
+      - name: Build
+        run: swift build
+
+      - name: Verify embedded Quiver documentation
+        run: python3 Scripts/generate-quiver-docs.py --check
+
+      - name: Test
+        run: swift test

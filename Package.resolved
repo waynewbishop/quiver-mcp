@@ -1,0 +1,15 @@
+{
+  "originHash" : "4216bab9d95129595ebefdbbc4f5fafd27d97fd96992a66ddb4d0ef1c5fc7aad",
+  "pins" : [
+    {
+      "identity" : "quiver",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/waynewbishop/quiver.git",
+      "state" : {
+        "revision" : "f28e4c51d934b98f0cbb212a1e920ed17839cab4",
+        "version" : "1.7.0"
+      }
+    }
+  ],
+  "version" : 3
+}
