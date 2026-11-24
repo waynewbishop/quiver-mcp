@@ -1,36 +1,67 @@
 # Quiver MCP
 
-**Statistics, machine learning, and numerical computing for MCP clients—running locally in Swift.**
+**Statistics, machine learning, and numerical computing for your AI assistant, running locally in Swift.**
 
-Quiver MCP gives Claude Code, Codex, and other Model Context Protocol clients 47 calculation tools powered by [Quiver](https://github.com/waynewbishop/quiver). Ask your assistant to analyze a dataset, fit a model, solve a linear system, or analyze a workout without sending the computation to a separate service.
+Ask Claude Code, Codex, or another Model Context Protocol (MCP) client to analyze a dataset, fit a model, solve a linear system, or score a workout. Quiver MCP runs the calculation on your Mac and returns structured results your assistant can explain. It can also look up documentation for [Quiver](https://github.com/waynewbishop/quiver), the Swift library that does the work.
 
 [![Swift 6.1+](https://img.shields.io/badge/Swift-6.1%2B-F05138?logo=swift&logoColor=white)](https://www.swift.org/)
 [![macOS 15+](https://img.shields.io/badge/macOS-15%2B-000000?logo=apple&logoColor=white)](https://www.apple.com/macos/)
 [![Apache 2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
-- **Broad numerical toolkit:** descriptive statistics, probability, regression, classification, clustering, PCA, linear algebra, signal processing, and vector search.
-- **Agent-friendly results:** every tool publishes an input schema and returns named fields as structured JSON as well as text.
-- **Local and stateless:** no API key or model server is required. Each call contains everything needed for its calculation, and fitted models are discarded after the response.
+> **Developer preview.** Quiver MCP runs locally on your Mac.
 
-## Quickstart
+## See it work
+
+> Use Quiver to fit a line to these house sizes and sale prices. The sizes are 1,000, 1,500, 2,000, and 2,500 square feet. The prices are $250,000, $325,000, $400,000, and $475,000. What does the fitted line predict for a 1,800-square-foot house?
+
+Quiver returns an intercept of **$100,000** and a slope of **$150 per square foot**. At 1,800 square feet, the fitted line predicts **$370,000**.
+
+## What it does
+
+MCP gives an assistant a standard way to discover and call tools. Quiver MCP exposes [49 tools](#available-tools), including two for searching and reading Quiver’s documentation. The toolkit covers descriptive statistics, probability, regression, classification, clustering, PCA, linear algebra, signal processing, vector search, and True Effort Score.
+
+Each tool describes the inputs it accepts. Results include named fields such as `intercept` and `slope`, so the assistant can use those values directly in its explanation. The documentation tools search the DocC bundled with the pinned Quiver release and can return full sections with source links, Swift examples, and equations.
+
+## Learn with it
+
+Start with the house-price example above. Once you have the fitted line, ask how Quiver chose it.
+
+> Using Quiver’s Linear Regression overview, explain why the best-fit line minimizes the sum of squared residuals. Cite the section you used.
+
+Then change one sale price and fit the line again. Compare the new slope and the predicted price for a 1,800-square-foot house.
+
+You can also ask Quiver to check a system of equations.
+
+> Use Quiver to solve `2x + y = 5` and `x + 3y = 10`. Substitute the result into both equations to check it.
+
+## Ask about Swift
+
+Quiver is written in Swift, so some questions are about the language as much as the math: how data is organized, why a call can fail, and why a fitted model behaves the way it does. Ask for a small code example when you want to try an API yourself.
+
+> Using Quiver’s Panel Workflows guide, show how to split a Panel into training and test rows while keeping its columns aligned. Cite the section you used.
+
+> Using Quiver’s Linear Regression documentation, explain why duplicate features make the normal equation singular. Cite the section you used.
+
+You can also ask in your own words, such as why a fitted Quiver model is ready to use the moment it’s created, or how a Panel compares to other tabular tools you know. Quiver’s documentation covers the Swift side of those answers. Anything beyond the documentation comes from your assistant, not from Quiver.
+
+## Get started
 
 ### Requirements
 
 - macOS 15 or later
 - Swift 6.1 or later
-- An MCP client that supports local stdio servers
+- An MCP client that supports local stdio servers. The client launches Quiver MCP and communicates with it through standard input and output.
 
-### 1. Build the server
-
-From the package directory:
+### 1. Build Quiver MCP
 
 ```sh
-cd /path/to/quiver-mcp
+git clone https://github.com/waynewbishop/quiver-mcp.git
+cd quiver-mcp
 swift build -c release
 QUIVER_MCP="$(pwd -P)/.build/release/quiver-mcp"
 ```
 
-The first build may download Quiver 1.7.0 through Swift Package Manager. The executable is created at `.build/release/quiver-mcp`; the last command stores its absolute path for the registration commands below. Use the same shell for the next step.
+Swift Package Manager may download Quiver 1.7.0 on the first build. The last command captures the executable’s absolute path. Run the registration command in the same terminal window.
 
 ### 2. Connect your client
 
@@ -70,28 +101,17 @@ Configuration file locations vary by client; consult the client’s MCP document
 
 </details>
 
-Start a new client session after changing the configuration. The client launches the executable and discovers its tools automatically.
+### 3. Try it
 
-### 3. Try a calculation
+Start a new client session and paste the [house-price prompt](#see-it-work). You can ask in plain language. The client can discover the available tools and select one based on your request.
 
-Ask:
+For a complete MCP exchange in the terminal, see [Fitting a Line](Sources/QuiverMCP/QuiverMCP.docc/Worked-Examples/Fitting-a-Line.md).
 
-> Use Quiver’s `fit_linear_regression` tool to fit a line to predictors [1, 2, 3, 4] and targets [3, 5, 7, 9]. Report the intercept and slope.
+## How it handles your data
 
-The tool’s structured result is:
+Quiver MCP performs calculations in memory on your Mac and requires no API key of its own. Each call supplies the data it needs. Quiver MCP retains no inputs, results, or fitted models between calls. When a tool fits a model and makes predictions, it does both in the same request.
 
-```json
-{
-  "intercept": 1,
-  "slope": 2
-}
-```
-
-That gives the line **y = 1 + 2x**. Try another request:
-
-> Use `vector_summary` to summarize [4, 8, 15, 16, 23, 42], then explain the spread and quartiles.
-
-For a complete MCP exchange in the terminal, follow [Fitting a Line](Sources/QuiverMCP/QuiverMCP.docc/Worked-Examples/Fitting-a-Line.md).
+Your MCP client may include tool inputs and results in the model conversation. How that conversation is processed or stored depends on your client and its settings.
 
 ## Available tools
 
@@ -108,27 +128,7 @@ For a complete MCP exchange in the terminal, follow [Fitting a Line](Sources/Qui
 | Score a workout | `calculate_true_effort_score` |
 | Look up Quiver documentation | `search_quiver_docs`, `read_quiver_doc` |
 
-The MCP `tools/list` response is the authoritative source for each tool’s description and input schema. Model tools fit and predict in the same request; no separate model-saving step is needed. See the [model guide](Sources/QuiverMCP/QuiverMCP.docc/Essentials/Fitting-Models-with-Quiver.md) for required arguments, optional controls, and result fields.
-
-## Ask about Quiver’s documentation
-
-Try asking your MCP client, “Using Quiver’s documentation, explain how ridge regression handles feature scaling and cite the sections you used.”
-
-`search_quiver_docs` returns up to five relevant DocC sections with excerpts, section IDs, and source links. `read_quiver_doc` takes a section ID and returns its Markdown with Swift examples and equations intact. The executable embeds documentation from the pinned Quiver revision and searches it locally.
-
-## How it works
-
-```text
-Claude Code, Codex, or another MCP client
-                  ↕ JSON-RPC over stdio
-              quiver-mcp
-                  ↕ Swift calls
-             Quiver 1.7.0
-```
-
-Quiver MCP is a local executable, not an HTTP service. Standard output carries MCP messages, diagnostics go to standard error, and calculations run in memory. Running the executable directly waits for protocol input; use the [terminal example](Sources/QuiverMCP/QuiverMCP.docc/Worked-Examples/Fitting-a-Line.md) to exercise it without a client.
-
-The server requires no API key and makes no network requests while performing calculations. Your MCP client can still include tool inputs and results in the model conversation, subject to that client’s privacy settings. Quiver MCP retains only connection handshake state between requests; it does not persist inputs, results, or fitted models.
+The MCP `tools/list` response is the authoritative source for each tool’s description and input schema. See the [model guide](Sources/QuiverMCP/QuiverMCP.docc/Essentials/Fitting-Models-with-Quiver.md) for required arguments, optional controls, and result fields.
 
 ## Documentation
 
